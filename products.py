@@ -4,6 +4,21 @@ from datetime import datetime
 import os
 db_path = '/home/testbench/product_database/products.db'  # Specify the full path to the database
 
+def get_product_by_serial_number(serial_number):
+    global db_path
+    conn = sqlite3.connect(db_path)
+    c = conn.cursor()
+
+    # Query the database to find the product with the specified serial number
+    c.execute('''
+        SELECT * FROM products
+        WHERE SerialNumber = ?
+    ''', (serial_number,))
+
+    product = c.fetchone()
+    conn.close()
+
+    return product
 
 def get_next_serial(cursor):
     cursor.execute("SELECT BarCodeID FROM products ORDER BY BarCodeID DESC LIMIT 1")
@@ -140,6 +155,38 @@ def update_product(barcode, new_serial_number, new_hardware_version, new_hardwar
     conn.close()
     return barcode
 
+def update_product_via_serial(new_manufacturing_order, make, model, serial_number, new_hardware_version, new_hardware_batch, new_software_version, new_technician, new_passed_all_tests, new_comments):
+    global db_path
+
+    conn = sqlite3.connect(db_path)
+    c = conn.cursor()
+
+    # Update the product in the database
+    c.execute('''
+        UPDATE products
+        SET ManufacturingOrder = ?,
+            HardwareVersion = ?,
+            HardwareBatch = ?,
+            SoftwareVersion = ?,
+            Technician = ?,
+            PassedAllTests = ?,
+            Comments = ?
+        WHERE SerialNumber = ?
+    ''', (new_manufacturing_order, new_hardware_version, new_hardware_batch, new_software_version, new_technician, new_passed_all_tests, new_comments, serial_number))
+
+
+    # Retrieve the updated barcode
+    c.execute('SELECT BarCodeID FROM products WHERE SerialNumber = ?', (serial_number,))
+    barcode_tuple = c.fetchone()
+    
+    conn.commit()
+    conn.close()
+    bar_code_id_hex = format(barcode_tuple[0], '08X')
+    barcode_number = f'{make}-{model}-{bar_code_id_hex}'
+
+    # Return the barcode as a string
+    return barcode_number if barcode_tuple else None
+
 def get_products(date_code):
     global db_path
     conn = sqlite3.connect(db_path)
@@ -182,20 +229,28 @@ def get_product(barcode):
 create_db()
 # Example usage of the add_product function
 if __name__ == "__main__":
-    manufacturing_order = 'M00025'
-    make = "RC"
-    model = '0006'
-    serial_number = "SN123456"
-    hardware_version = "1.2"
-    hardware_batch = "2341"
-    software_version = "SW1.0.1"
-    technician = "John Doe"
-    passed_all_tests = True
-    comments = "All tests passed. Ready for shipping."
+    # manufacturing_order = 'M00025'
+    # make = "RC"
+    # model = '0006'
+    # serial_number = "SN123456"
+    # hardware_version = "1.2"
+    # hardware_batch = "2341"
+    # software_version = "SW1.0.1"
+    # technician = "John Doe"
+    # passed_all_tests = True
+    # comments = "All tests passed. Ready for shipping."
 
     # Call the add_product function
-    barcode = add_product(manufacturing_order, make, model, serial_number, hardware_version, hardware_batch,
-                software_version, technician, passed_all_tests, comments)
+    # barcode = add_product(manufacturing_order, make, model, serial_number, hardware_version, hardware_batch,
+    #             software_version, technician, passed_all_tests, comments)
+    #create_db()
+
+    a = get_product_by_serial_number('A1B2C6AD')
+    if a:
+        print(a)
+    #barcode = update_product_via_serial('mo00025', 'DL', 'TH', 'A1B2C6AD', '0.62', '2331', '2.3', 'Name', True, "test")
+    barcode = add_product('mo00025', 'DL', 'TH', 'A1B2C6AD', '0.62', '2331', '2.3', 'Kakn', True, "testah")
+    print(barcode)
 # update_product(barcode, 'CSN456', '00:AA:BB:CC:DD:EE', '11:22:33:44:55:66', True, 'All tests passed successfully')/
 # print(barcode)
 # product = get_product(barcode)

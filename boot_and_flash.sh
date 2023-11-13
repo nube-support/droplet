@@ -19,10 +19,7 @@ node_id=$(echo "$output" | grep "Node ID:" | awk '{print $3}')
 version=$(echo "$output" | grep "Version:" | awk '{print $3}')
 
 # Add the droplet info to the product database
-python3 /home/testbench/droplets/Add_To_Database.py "$node_id" "$version"
-
-# Pass the Node ID to Generate_Droplet_labels.py
-python3 /home/testbench/droplets/Generate_Droplet_labels.py "$node_id"
+python3 /home/testbench/droplets/Add_To_Database_Print_Labels.py "$node_id" "$version"
 
 wait 2
 exit

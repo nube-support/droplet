@@ -9,8 +9,7 @@ from PIL import Image, ImageDraw, ImageFont
 dpi = 360
 
 
-def generate_barcode(droplet_id):
-    barcode_text = "DR-TH-" + droplet_id
+def generate_barcode(barcode_text):
     barcode_type = barcode.get_barcode_class('code128')  # Using Code 39 format
     bc = barcode_type(barcode_text, writer=ImageWriter())
     options = {"module_height": 10, "font_size": 10, "text_distance": 4, "quiet_zone": 0.9, "module_width": 0.2}
@@ -83,20 +82,18 @@ def generate_label(lines):
     print(img.size)
     img.save("product_label.png")
 
-def main():
-
-    droplet_id = sys.argv[1].strip()
-    model = "MN:DR-TH"
-    hw = "HW:V6.2"
-    sw = "SW:V1.6.0"
+def main(barcode_text, hardware_version, software_version):
+    model = "MN:DL-TH"
+    hw = f"HW:V{hardware_version}"
+    sw = f"SW:V{software_version}"
     today_date = datetime.today().strftime('%Y/%m/%d')
     lines = [model, hw, sw, today_date]
 
-    generate_barcode(droplet_id)
+    generate_barcode(barcode_text)
     generate_label(lines)
 
+    cmd = 'lpr -P PT-P900W -o PageSize=Custom.12x48mm -o Resolution=360dpi -o CutLabel=0 -o ExtraMargin=0mm -o number-up=1 -o orientation-requested=4 -#2 product_label.png'
+    subprocess.check_output(cmd, shell=True, text=True)
 
 if __name__ == '__main__':
     main()
-    cmd = 'lpr -P PT-P900W -o PageSize=Custom.12x48mm -o Resolution=360dpi -o CutLabel=0 -o ExtraMargin=0mm -o number-up=1 -o orientation-requested=4 -#2 product_label.png'
-    subprocess.check_output(cmd, shell=True, text=True)
