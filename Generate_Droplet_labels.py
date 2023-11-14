@@ -92,7 +92,7 @@ def main(barcode_text, hardware_version, software_version, print_flag):
     generate_barcode(barcode_text)
     generate_label(lines)
 
-    if print_flag == '--no-print':
+    if print_flag != '--no-print':
         cmd = 'lpr -P PT-P900W -o PageSize=Custom.12x48mm -o Resolution=360dpi -o CutLabel=0 -o ExtraMargin=0mm -o number-up=1 -o orientation-requested=4 -#2 product_label.png'
         subprocess.check_output(cmd, shell=True, text=True)
 

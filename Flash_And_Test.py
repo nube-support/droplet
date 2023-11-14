@@ -1,5 +1,5 @@
 import subprocess
-import Custom_Logger, logging, Manufacturing_Info
+import Custom_Logger, logging, Manufacturing_Info, Add_To_Database_Print_Labels
 import sys
 from termcolor import *
 
@@ -11,7 +11,6 @@ if len(sys.argv) > 1 and print_flag == '':
 
 technician, hardware_version, batch_id, manufacturing_order = None, None, None, None
 Custom_Logger.create_logger('output.txt')  # Set up the custom logging configuration
-
 
 while True:
     #make sure the test output file is clean for each device
@@ -36,20 +35,14 @@ while True:
     # Execute DROPLET_FLASH.sh
     subprocess.run(["sudo", "./DROPLET_FLASH.sh"])
 
-    command = [
-    "python3",
-    "/home/testbench/droplet/Add_To_Database_Print_Labels.py",
-    str(technician),
-    str(hardware_version),
-    str(batch_id),
-    str(manufacturing_order),
-    str(print_flag)
-    ]
-
-    barcode_process = subprocess.run(command, capture_output=True, text=True)
-
+    Add_To_Database_Print_Labels.main(technician, hardware_version, batch_id, manufacturing_order, print_flag)
+    
     # Run the reset command using a shell
     subprocess.run('reset', shell=True)
+
+    with open('cleaned_output.txt', "r") as file:
+        for line in file:
+            print(line.strip())
 
     input(colored('Insert new device, press reset button and press enter to execute script. Press Ctrl+c to stop.\n', 'white', 'on_blue'))
 

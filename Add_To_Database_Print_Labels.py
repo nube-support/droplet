@@ -7,19 +7,9 @@ Custom_Logger.create_logger('output.txt')  # Set up the custom logging configura
 local_test_path = f"/home/testbench/product_database/"
 print_flag = ''
 
-def get_info():
-    if len(sys.argv) >= 5:
-        technician = sys.argv[1]
-        hardware_version = sys.argv[2]
-        batch_id = sys.argv[3]
-        manufacturing_order = sys.argv[4]
-    return technician, hardware_version, batch_id, manufacturing_order
-    
-def main():
-    technician, hardware_version, batch_id, manufacturing_order = get_info()
 
-    if len(sys.argv == 6):
-        print_flag = sys.argv[6]
+    
+def main(technician, hardware_version, batch_id, manufacturing_order, print_flag):
 
     product_in_db = ''
 
@@ -48,7 +38,7 @@ def main():
         print("Succesfully retrieved test information")
 
     output_file = "cleaned_output.txt"
-
+    output = ''
     for _ in range(20):
         command = 'sudo ./clean_script.sh'
         result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -81,14 +71,15 @@ def main():
 
     # Check if all dip switches are 0 except dip switch 5
     if dip_switch_states.get("dip_5") == "1" and all(state == "0" for number, state in dip_switch_states.items() if number != "dip_5"):
-        logging.info(colored("All dip switches are 0 except dip switch 5.", 'white', 'on_green'))
+        with open("cleaned_output.txt", "a") as output_file:
+            output_file.write("Working - All dip switches are 0 except dip switch 5.\n")
     else:
-        logging.info(colored("Dip switches are not in the expected state.", 'white', 'on_green'))
+        with open("cleaned_output.txt", "a") as output_file:
+            output_file.write("Failed - Dip switches are not in the expected state.\n")
 
     comments = "None"
 
     if node_id != '':
-        print(node_id)
         #Check if product was tested before and update it in that case
         product_in_db = products.get_product_by_serial_number(node_id)
 
