@@ -61,7 +61,7 @@ def main():
 
     # Define the regular expressions for Node ID and Version
     node_id_pattern = r"Node ID:\s*(\w+)"
-
+    dip_switches_pattern = r"dip_(\d+)\s*:\s*(\d+)"
 
     # Iterate over lines
     for line in output.splitlines():
@@ -75,6 +75,16 @@ def main():
     node_id_match = re.search(node_id_pattern, output)
     node_id = node_id_match.group(1) if node_id_match else ""
     
+    # Extract the Dip Switches using regular expressions
+    dip_switch_matches = re.findall(dip_switches_pattern, output)
+    dip_switch_states = {f"dip_{number}": state for number, state in dip_switch_matches}
+
+    # Check if all dip switches are 0 except dip switch 5
+    if dip_switch_states.get("dip_5") == "1" and all(state == "0" for number, state in dip_switch_states.items() if number != "dip_5"):
+        logging.info(colored("All dip switches are 0 except dip switch 5.", 'white', 'on_green'))
+    else:
+        logging.info(colored("Dip switches are not in the expected state.", 'white', 'on_green'))
+
     comments = "None"
 
     if node_id != '':
@@ -88,7 +98,7 @@ def main():
         barcode = products.add_product(manufacturing_order, 'DL', 'TH', node_id, hardware_version, batch_id, software_version, technician, True, comments)
 
     # Pass the Node ID to Generate_Droplet_labels.py
-    Generate_Droplet_labels.main(barcode, hardware_version, software_version)
+    Generate_Droplet_labels.main(barcode, hardware_version, software_version, print_flag)
 
     # Copy the contents of the old file to the new file
     shutil.copyfile('cleaned_output.txt', f"{local_test_path}{barcode}.txt")
