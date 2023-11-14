@@ -18,8 +18,8 @@ def get_info():
 def main():
     technician, hardware_version, batch_id, manufacturing_order = get_info()
 
-    # if len(sys.argv == 6):
-    #     print_flag = sys.argv[6]
+    if len(sys.argv == 6):
+        print_flag = sys.argv[6]
 
     product_in_db = ''
 
@@ -61,8 +61,7 @@ def main():
 
     # Define the regular expressions for Node ID and Version
     node_id_pattern = r"Node ID:\s*(\w+)"
-    version_pattern = r"^\s*Version:\s*([\d.]+)\s*$"
-    dip_switches_pattern = r"dip_(\d+)\s*:\s*(\d+)"
+
 
     # Iterate over lines
     for line in output.splitlines():
@@ -75,16 +74,6 @@ def main():
     # Extract the Node ID using regular expressions
     node_id_match = re.search(node_id_pattern, output)
     node_id = node_id_match.group(1) if node_id_match else ""
-
-    # Extract the Dip Switches using regular expressions
-    # dip_switch_matches = re.findall(dip_switches_pattern, output)
-    # dip_switch_states = {f"dip_{number}": state for number, state in dip_switch_matches}
-
-    # Check if all dip switches are 0 except dip switch 5
-    # if dip_switch_states.get("dip_5") == "1" and all(state == "0" for number, state in dip_switch_states.items() if number != "dip_5"):
-    #     logging.info(colored("All dip switches are 0 except dip switch 5.", 'white', 'on_green'))
-    # else:
-    #     logging.info(colored("Dip switches are not in the expected state.", 'white', 'on_green'))
     
     comments = "None"
 
@@ -99,7 +88,6 @@ def main():
         barcode = products.add_product(manufacturing_order, 'DL', 'TH', node_id, hardware_version, batch_id, software_version, technician, True, comments)
 
     # Pass the Node ID to Generate_Droplet_labels.py
-    #subprocess.run(["sudo python3", "/home/testbench/droplets/Generate_Droplet_labels.py"])
     Generate_Droplet_labels.main(barcode, hardware_version, software_version)
 
     # Copy the contents of the old file to the new file
@@ -107,8 +95,3 @@ def main():
     return barcode
 if __name__ == '__main__':
     main()
-    #cmd = 'lpr -P PT-P900W -o PageSize=Custom.12x48mm -o Resolution=360dpi -o CutLabel=0 -o ExtraMargin=0mm -o number-up=1 -o orientation-requested=4 -#2 product_label.png'
-    #subprocess.check_output(cmd, shell=True, text=True)
-
-    #barcode = products.update_product_via_serial('mo00025', 'A1B2C6AD', '0.62', '2331', '2.3', 'Kakn', True, "testah")
-   # barcode = products.add_product('mo00025', 'DL', 'TH', 'A1B2C6AD', '0.62', '2331', '2.3', 'Kakn', True, "testah")
