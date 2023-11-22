@@ -21,7 +21,7 @@ def get_product_by_serial_number(serial_number):
     return product
 
 def get_next_serial(cursor):
-    cursor.execute("SELECT BarCodeID FROM products ORDER BY BarCodeID DESC LIMIT 1")
+    cursor.execute("SELECT LoraID FROM products ORDER BY LoraID DESC LIMIT 1")
     row = cursor.fetchone()
     if row:
         serial = row[0] + 1
@@ -47,7 +47,8 @@ def create_db():
             ManufacturingOrder TEXT,
             Make TEXT,
             Model TEXT,
-            BarCodeID INTEGER,
+            Variant TEXT,
+            LoraID INTEGER,
             TestingDateCode TEXT,
             SerialNumber TEXT,
             HardwareVersion TEXT,
@@ -62,44 +63,44 @@ def create_db():
         conn.close()
 
 
-def add_product(manufacturing_order, make, model, bar_code_id, testing_date_code, serial_number, hardware_version, hardware_batch,
-                software_version, technician, test_date, passed_all_tests, comments):
-    global db_path
-    conn = sqlite3.connect(db_path)
-    c = conn.cursor()
+# def add_product(manufacturing_order, make, model, bar_code_id, testing_date_code, serial_number, hardware_version, hardware_batch,
+#                 software_version, technician, test_date, passed_all_tests, comments):
+#     global db_path
+#     conn = sqlite3.connect(db_path)
+#     c = conn.cursor()
 
-    c.execute('''
-        INSERT INTO products (
-            ManufacturingOrder,
-            Make,
-            Model,
-            BarCodeID,
-            TestingDateCode,
-            SerialNumber,
-            HardwareVersion,
-            HardwareBatch,
-            SoftwareVersion,
-            Technician,
-            TestDate,
-            PassedAllTests,
-            Comments
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (manufacturing_order, make, model, bar_code_id, testing_date_code, serial_number, hardware_version, hardware_batch,
-          software_version, technician, test_date, passed_all_tests, comments))
+#     c.execute('''
+#         INSERT INTO products (
+#             ManufacturingOrder,
+#             Make,
+#             Model,
+#             LoraID,
+#             TestingDateCode,
+#             SerialNumber,
+#             HardwareVersion,
+#             HardwareBatch,
+#             SoftwareVersion,
+#             Technician,
+#             TestDate,
+#             PassedAllTests,
+#             Comments
+#         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+#     ''', (manufacturing_order, make, model, bar_code_id, testing_date_code, serial_number, hardware_version, hardware_batch,
+#           software_version, technician, test_date, passed_all_tests, comments))
 
-    conn.commit()
-    conn.close()
+#     conn.commit()
+#     conn.close()
 
 
-def add_product(manufacturing_order, make, model, serial_number, hardware_version, hardware_batch,
+def add_product(manufacturing_order, make, model, variant, serial_number, hardware_version, hardware_batch,
                 software_version, technician, passed_all_tests, comments):
     global db_path
     conn = sqlite3.connect(db_path)
     c = conn.cursor()
-    bar_code_id = get_next_serial(c)
+    lora_id = get_next_serial(c)
     current_date = datetime.now()
     testing_date_code = hardware_batch
-    bar_code_id_hex = format(bar_code_id, '08X')  # Convert serial_id to 4-digit hexadecimal
+    bar_code_id_hex = format(lora_id, '08X')  # Convert serial_id to 4-digit hexadecimal
     barcode_number = f'{make}-{model}-{bar_code_id_hex}'
         
     #barcode_number = f'{make}-{model}-{serial_number}'
@@ -109,7 +110,8 @@ def add_product(manufacturing_order, make, model, serial_number, hardware_versio
              ManufacturingOrder,
              Make,
              Model,
-             BarCodeID,
+             Variant,
+             LoraID,
              TestingDateCode,
              SerialNumber,
              HardwareVersion,
@@ -120,7 +122,7 @@ def add_product(manufacturing_order, make, model, serial_number, hardware_versio
              PassedAllTests,
              Comments
          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-     ''', (manufacturing_order, make, model, bar_code_id, testing_date_code, serial_number, hardware_version, hardware_batch,
+     ''', (manufacturing_order, make, model, variant, lora_id, testing_date_code, serial_number, hardware_version, hardware_batch,
            software_version, technician, test_date, passed_all_tests, comments))
 
     conn.commit()
@@ -147,7 +149,7 @@ def update_product(barcode, new_serial_number, new_hardware_version, new_hardwar
             Technician = ?,
             PassedAllTests = ?,
             Comments = ?
-        WHERE Make = ? AND Model = ? AND BarCodeID = ?
+        WHERE Make = ? AND Model = ? AND LoraID = ?
     ''', (new_serial_number, new_hardware_version, new_hardware_batch, new_software_version, new_technician, new_passed_all_tests, new_comments, make, model, serial_id))
 
 
@@ -176,7 +178,7 @@ def update_product_via_serial(new_manufacturing_order, make, model, serial_numbe
 
 
     # Retrieve the updated barcode
-    c.execute('SELECT BarCodeID FROM products WHERE SerialNumber = ?', (serial_number,))
+    c.execute('SELECT LoraID FROM products WHERE SerialNumber = ?', (serial_number,))
     barcode_tuple = c.fetchone()
     
     conn.commit()
@@ -216,7 +218,7 @@ def get_product(barcode):
     # Query the database to find the product
     c.execute('''
         SELECT * FROM products
-        WHERE Make = ? BarCodeID = ? AND TestingDateCode = ?
+        WHERE Make = ? LoraID = ? AND TestingDateCode = ?
     ''', (make, serial_id, testing_date_code))
 
     product = c.fetchone()
