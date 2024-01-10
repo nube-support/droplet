@@ -1,0 +1,6 @@
+Tester: Yuri
+Hardware Version: 6.0
+Variant: N1
+Batch: 2349
+Work Order: MO00000
+Failed - Dip switches are not in the expected state.

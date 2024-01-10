@@ -1,7 +1,21 @@
 import subprocess
-import Custom_Logger, logging, Manufacturing_Info, Add_To_Database_Print_Labels
-import sys
+import helpers.Custom_Logger as Custom_Logger, helpers.Manufacturing_Info as Manufacturing_Info, Droplet_Test_Process
+import sys, json, os
 from termcolor import *
+from productsdb import products
+
+with open('configs/TH_test.json', 'r') as config_file:
+    config = json.load(config_file)
+
+products.init_db_path(config["db_path"])
+local_test_path = config["local_test_path"]
+variant = config["variant"]
+make = config["make"]
+model = config["model"]
+
+# Get the directory of the current script and parent
+script_directory = os.path.dirname(os.path.abspath(__file__))
+parent_directory = os.path.dirname(script_directory)
 
 # Check if argument not to print has been passed in the terminal
 print_flag = ''
@@ -26,16 +40,15 @@ while True:
         input(colored('Press the reset button on the device and press enter to execute the script.\n', 'white', 'on_blue'))
 
     # Execute DROPLET_BOOTLOADER.sh
-    subprocess.run(["sudo", "./DROPLET_BOOTLOADER.sh"])
+    # subprocess.run(["sudo", "./DROPLET_BOOTLOADER.sh"])
+    subprocess.run(["sudo", f"./{os.path.join(parent_directory, 'helpers', 'scripts', 'DROPLET_BOOTLOADER.sh')}"])
 
-    # Prompt the user to confirm before executing the flash
-    # input("Press Enter to proceed with the flash after bootloader...")
     print("Flashing after bootloader...")
 
     # Execute DROPLET_FLASH.sh
-    subprocess.run(["sudo", "./DROPLET_FLASH.sh"])
+    subprocess.run(["sudo", f"./{os.path.join(parent_directory, 'helpers', 'scripts', 'DROPLET_FLASH.sh')}"])
 
-    Add_To_Database_Print_Labels.main(technician, hardware_version, batch_id, manufacturing_order, print_flag)
+    Droplet_Test_Process.main(technician, make, model, variant, hardware_version, batch_id, manufacturing_order, print_flag, local_test_path)
     
     # Run the reset command using a shell
     subprocess.run('reset', shell=True)

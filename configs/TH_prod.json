@@ -1,0 +1,8 @@
+{
+    "db_path": "/home/testbench/product_database/products.db",
+    "local_test_path": "/home/testbench/product_database/",
+    "make": "DR",
+    "model": "06",
+    "variant": "N1"
+  }
+  

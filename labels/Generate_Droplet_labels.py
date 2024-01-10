@@ -1,10 +1,11 @@
 from datetime import datetime
-
-import barcode, subprocess, sys
-import argparse
+import barcode, subprocess, os
 from barcode.writer import ImageWriter
-
 from PIL import Image, ImageDraw, ImageFont
+
+# Get the directory of the current script and parent
+script_directory = os.path.dirname(os.path.abspath(__file__))
+parent_directory = os.path.dirname(script_directory)
 
 dpi = 360
 
@@ -22,7 +23,7 @@ def generate_barcode(barcode_text):
     left, top, right, bottom = 0, 10, width, height - 29
     label = label.crop((left, top, right, bottom))
 
-    label.save("barcode_raw.png")
+    label.save(os.path.join(parent_directory, 'images', 'barcode_raw.png'))
 
     # Convert mm to pixels
 
@@ -42,23 +43,20 @@ def generate_barcode(barcode_text):
     # Paste cropped_img centered in img
     img.paste(label, (x_offset, y_offset))
 
-    img.save("barcode.png")
+    img.save(os.path.join(parent_directory, 'images', 'barcode.png'))
 
 
 def generate_label(lines):
-
     width_mm, height_mm = 48, 12
     width_px = int((width_mm * dpi) / 25.4)
     height_px = int((height_mm * dpi) / 25.4)
-
-    print(width_px, height_px)
 
     # Create a new white image
     img = Image.new('RGB', (width_px, height_px), 'white')
     draw = ImageDraw.Draw(img)
 
     # Load the image you want to add
-    barcode = Image.open('barcode.png')
+    barcode = Image.open(os.path.join(parent_directory, 'images', 'barcode.png'))
     position = (0, 0)
     img.paste(barcode, position)
 
@@ -79,11 +77,10 @@ def generate_label(lines):
         # Draw text
         draw.text((x, y), line, (0, 0, 0), font=font)  # Black text
 
-    print(img.size)
-    img.save("product_label.png")
+    img.save(os.path.join(parent_directory, 'images', 'product_label.png'))
 
-def main(barcode_text, hardware_version, software_version, print_flag):
-    model = "MN:DL-TH"
+def main(make, model, variant, barcode_text, hardware_version, software_version, print_flag):
+    model = f"MN:{make}-{model}-{variant}"
     hw = f"HW:V{hardware_version}"
     sw = f"SW:V{software_version}"
     today_date = datetime.today().strftime('%Y/%m/%d')
