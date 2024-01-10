@@ -45,3 +45,7 @@ Make sure you are in the script's directory.
 - Refer to the pdf documentation for in-depth test execution examples.
 
 **Disclaimer**: This script is intended for diagnostic purposes and may need further customization or additional checks based on your specific requirements as development unfolds.
+follow instructions.
+
+Flashing and Testing Documentation:
+https://docs.google.com/document/d/16Bl6WByoPQxH0keD4DW0MGktjZCH5ZyhydPQtKvMK4g/edit#heading=h.jci4fax0p0nk
