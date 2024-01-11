@@ -30,6 +30,12 @@ To flash and test a device:
 sudo python3 Flash_and_Test.py
 ```
 
+In case you don't need to print barcode labels you can use the --no-print option as follows:
+
+ ```bash
+sudo python3 Flash_And_Test.py --no-print
+```
+
 To check the health of a finished product:
 
 ```bash
