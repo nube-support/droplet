@@ -6,7 +6,7 @@ https://docs.google.com/document/d/16Bl6WByoPQxH0keD4DW0MGktjZCH5ZyhydPQtKvMK4g/
 
 ### Prerequisites
 
-1. **Install needed packages**: RYou can install them with:
+1. **Install needed packages**: You can install them with:
 
 Make sure to install all dependencies by running the command below:
 
