@@ -7,13 +7,30 @@ from termcolor import *
 Custom_Logger.create_logger('output.txt')  # Set up the custom logging configuration
 print_flag = ''
   
+
+def run_subprocess(command):
+    try:
+        with open('lora_info.txt', 'w') as output_file:
+            process = subprocess.Popen(command, shell=False, stdout=output_file, stderr=subprocess.STDOUT, text=True)
+
+            # Wait for the process to finish
+            #process.wait()
+
+            # Log the process return code
+            #logging.info(f"Subprocess finished with return code: {process.returncode}")
+
+    except Exception as e:
+        logging.error(f"An error occurred: {e}. The LoRa Receiver seems to be disconnected.")
+
 def main(technician, make, model, variant, hardware_version, batch_id, manufacturing_order, print_flag, local_test_path):
+    run_subprocess(["pyserial-miniterm", '/dev/ttyUSB0', "38400"])
+
     comments = "None"
 
     product_in_db = ''
 
     try:
-        command = "sudo pyserial-miniterm /dev/ttyUSB0 38400"
+        command = "sudo pyserial-miniterm /dev/ttyUSB1 38400"
 
         # Set a timeout (e.g., 2 seconds)
         timeout = 2
@@ -77,15 +94,33 @@ def main(technician, make, model, variant, hardware_version, batch_id, manufactu
         with open("cleaned_output.txt", "a") as output_file:
             output_file.write("Failed - Dip switches are not in the expected state.\n")
 
+    with open("lora_info.txt", "r") as file:
+        file_content = file.read()
+
+    # Search for the string in the content
+    sending_device_serial = node_id
+    signal_received = sending_device_serial in file_content
+
+    if signal_received:
+        logging.info(colored(f"LoRa signal received from test device, module working.", 'white', 'on_green'))
+        comments += 'LoraReceive,'
+        with open("cleaned_output.txt", "a") as output_file:
+            output_file.write("Working - LoRa signal received on test device, module working.\n")
+
+    else:
+        logging.info(colored(f"Failed - LoRa signal not received from test device.", 'white', 'on_red'))
+        with open("cleaned_output.txt", "a") as output_file:
+            output_file.write("Failed - LoRa signal not received on test device.\n")
     if node_id != '':
         #Check if product was tested before and update it in that case
         product_in_db = products.get_products_by_loraid(node_id)
-
-    if product_in_db is not None:
-        barcode = products.update_product(manufacturing_order, f"{make}-{model}-{node_id}", 'No-serial', hardware_version, batch_id, 
+    print(product_in_db)
+    print(node_id)
+    if product_in_db != []:
+        barcode = products.update_product(product_in_db[0][1], f"{make}-{model}-{node_id}", 'No-extra-serial', hardware_version, batch_id, 
                                           software_version, technician, True, comments)
     else:
-        barcode = products.add_product(manufacturing_order, make, model, variant, node_id, 'No-serial', 
+        barcode = products.add_product(manufacturing_order, make, model, variant, node_id, 'No-extra-serial', 
                                        hardware_version, batch_id, software_version, technician, True, comments)
 
     # Generate labels

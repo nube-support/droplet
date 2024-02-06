@@ -1,6 +1,6 @@
 #!/bin/bash
 
-port_number=0
+port_number=1
 port_found=false
 serial_port=""
 
@@ -17,7 +17,7 @@ while [ "$port_found" = false ]; do
 done
 
 yeet() {
-    avrdude -v -patmega328p -carduino -P$serial_port -b57600 -D -Uflash:w:DROP_V1_6.hex:i
+    avrdude -v -patmega328p -carduino -P$serial_port -b57600 -D -Uflash:w:/home/testbench/Droplet/DROP_V1_6.hex:i
     exit 0
 }
 

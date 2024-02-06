@@ -4,7 +4,7 @@ import sys, json, os
 from termcolor import *
 from productsdb import products
 
-with open('configs/TH_test.json', 'r') as config_file:
+with open('configs/TH_prod.json', 'r') as config_file:
     config = json.load(config_file)
 
 products.init_db_path(config["db_path"])
@@ -41,21 +41,36 @@ while True:
 
     # Execute DROPLET_BOOTLOADER.sh
     # subprocess.run(["sudo", "./DROPLET_BOOTLOADER.sh"])
-    subprocess.run(["sudo", f"./{os.path.join(parent_directory, 'helpers', 'scripts', 'DROPLET_BOOTLOADER.sh')}"])
-
+    #subprocess.run(["sudo", f".{os.path.join(parent_directory, 'droplet', 'helpers', 'scripts', 'DROPLET_BOOTLOADER.sh')}"])
+    #subprocess.run(["sudo", "/home/testbench/helpers/scripts/DROPLET_BOOTLOADER.sh"])
+    subprocess.run(["sudo", "./DROPLET_BOOTLOADER.sh"])
     print("Flashing after bootloader...")
 
     # Execute DROPLET_FLASH.sh
-    subprocess.run(["sudo", f"./{os.path.join(parent_directory, 'helpers', 'scripts', 'DROPLET_FLASH.sh')}"])
-
+    #subprocess.run(["sudo", f".{os.path.join(parent_directory, 'droplet', 'helpers', 'scripts', 'DROPLET_FLASH.sh')}"])
+    subprocess.run(["sudo", "./DROPLET_FLASH.sh"])
     Droplet_Test_Process.main(technician, make, model, variant, hardware_version, batch_id, manufacturing_order, print_flag, local_test_path)
-    
     # Run the reset command using a shell
     subprocess.run('reset', shell=True)
-
+    failed_flag = False
     with open('cleaned_output.txt', "r") as file:
         for line in file:
-            print(line.strip())
+            if 'Failed' in line:
+                failed_flag = True
+                print(colored(line, 'white', 'on_red'))
+                input(colored('Test Failed, check reason above. Press Ctrl+c to stop, or press reset button and enter to retry.\n', 'white', 'on_blue'))
+            elif 'Working' in line:
+                print(colored(line, 'white', 'on_green'))
+
+            else:
+                print(line.strip())
+    
+    if failed_flag:
+        continue
+    else:
+        if print_flag != '--no-print':
+            cmd = 'lpr -P PT-P900W -o PageSize=Custom.12x48mm -o Resolution=360dpi -o CutLabel=0 -o ExtraMargin=0mm -o number-up=1 -o orientation-requested=4 -#2 /home/testbench/droplet/images/product_label.png'
+            subprocess.check_output(cmd, shell=True, text=True)
 
     input(colored('Insert new device, press reset button and press enter to execute script. Press Ctrl+c to stop.\n', 'white', 'on_blue'))
 
